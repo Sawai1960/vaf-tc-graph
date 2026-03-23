@@ -37,7 +37,10 @@ somatic_loh_del = tc / (2 - tc) if tc < 2 else 1.0
 somatic_loh_cn = tc
 
 advice_text = ""
-if abs(tc - 0.5) < 0.05 and abs(vaf - 0.5) < 0.05:
+# Added advice for Low TC
+if tc < 0.30:
+    advice_text = "**Low Confidence Zone (<30% TC):** Data reliability is limited at low tumor content. Clinical interpretation should be extremely cautious. These values may not reflect the true clonal architecture."
+elif abs(tc - 0.5) < 0.05 and abs(vaf - 0.5) < 0.05:
     advice_text = "**Inconclusive Intersection:** This data point lies where 'Heterozygous Germline' and 'Somatic with Copy-neutral LOH' converge. VAF analysis alone cannot distinguish the origin."
 elif 0.60 <= tc <= 0.70:
     advice_text = "**TC Gray Zone Alert (60-70%):** At this tumor content, theoretical lines for germline and somatic LOH overlap significantly. Interpret with caution."
@@ -57,9 +60,13 @@ col1, col2 = st.columns([3, 1])
 
 with col1:
     fig, ax = plt.subplots(figsize=(10, 7))
-    x_range = np.linspace(0.01, 1.0, 100)
+    x_range = np.linspace(0.001, 1.0, 100) # Start from slightly above 0 to avoid division by zero
     
-    # Lines
+    # 【Added】Shading for Low Confidence Area (0 to 0.3)
+    ax.axvspan(0, 0.3, color='gray', alpha=0.15, label="Low Confidence Area (<30%)")
+    ax.axvline(x=0.3, color='gray', linestyle='--', alpha=0.3)
+
+    # Plotting Lines
     ax.plot(x_range, 0.5 * x_range + 0.5, color='#D4AF37', label="Germline + cnLOH")
     ax.plot(x_range, 1 / (2 - x_range), color='red', label="Germline + LOH (Del)")
     ax.axhline(0.5, color='brown', linewidth=2, label="Germline (Hetero)")
@@ -67,14 +74,16 @@ with col1:
     ax.plot(x_range, x_range / (2 - x_range), color='gray', linestyle=':', label="Somatic + LOH (Del)")
     ax.plot(x_range, 0.5 * x_range, color='gray', linestyle='--', alpha=0.5, label="Somatic (Hetero)")
     
+    # Patient point
     ax.scatter(tc, vaf, color='black', s=200, zorder=5, label=f"Patient: {gene}")
     
+    # Formatting
     ax.set_xlabel("Tumor Content (TC)")
     ax.set_ylabel("Variant Allele Fraction (VAF)")
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1)
     ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
-    ax.grid(True, linestyle='--', alpha=0.3)
+    ax.grid(True, linestyle='--', alpha=0.2)
     st.pyplot(fig)
 
 with col2:
@@ -87,12 +96,12 @@ with col2:
     st.markdown(f"<div class='advice-box'><div class='advice-title'>Automated Talking Points</div>{advice_text}</div>", unsafe_allow_html=True)
     
     st.write("---")
-    # --- The Restored Reference Guide (Cleaned for Publication) ---
     st.header("Reference Guide")
     st.markdown("""
-    - **Solid Lines:** Suggest potential germline origin or biallelic inactivation (LOH).
-    - **Dashed/Dotted Lines:** Suggest potential somatic origin.
-    - **Gray Zone (TC 60-70%):** Theoretical lines converge, making discrimination difficult.
+    - **Shaded Area:** Low Confidence (<30% TC).
+    - **Solid Lines:** Possible germline origin.
+    - **Dashed Lines:** Possible somatic origin.
+    - **Gray Zone:** TC 60-70% overlap.
     """)
 
 st.divider()
