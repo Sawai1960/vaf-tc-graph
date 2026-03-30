@@ -10,6 +10,11 @@ st.write("An interactive tool to visualize the theoretical relationship between 
 
 # --- Sidebar Parameter Inputs ---
 st.sidebar.header("📊 Input Parameters")
+
+# Feature 1: Gene Name Input (Restored)
+gene_name = st.sidebar.text_input("Gene Name", value="BRCA2", help="e.g., BRCA2, BRCA1, MSH6, APC")
+
+# Sliders for TC and VAF
 tc_input = st.sidebar.slider("Pathological Tumor Content (TC %)", 0, 100, 50)
 vaf_input = st.sidebar.slider("Variant Allele Fraction (VAF %)", 0, 100, 50)
 
@@ -45,12 +50,12 @@ fig.add_trace(go.Scatter(x=tc_plot, y=s_del, name="Somatic + LOH (Del)", line=di
 fig.add_vrect(x0=0, x1=30, fillcolor="rgba(200, 200, 200, 0.2)", layer="below", line_width=0, 
               annotation_text="Low Confidence Zone", annotation_position="top left")
 
-# User-Defined Data Point
-fig.add_trace(go.Scatter(x=[tc_input], y=[vaf_input], name="Current Sample", mode='markers+text',
+# Feature 2: User-Defined Data Point (Updated with Gene Name)
+fig.add_trace(go.Scatter(x=[tc_input], y=[vaf_input], name=f"{gene_name} Sample", mode='markers+text',
                          marker=dict(color='black', size=14, symbol='circle'),
-                         text=[f"TC:{tc_input}% VAF:{vaf_input}%"], textposition="top right"))
+                         text=[f"{gene_name}<br>TC:{tc_input}%<br>VAF:{vaf_input}%"], textposition="top right"))
 
-# Axis Formatting (Fixed 0-100% range as requested)
+# Axis Formatting (Fixed 0-100% range)
 fig.update_layout(
     xaxis=dict(title="Pathological Tumor Content (%)", range=[0, 100], dtick=10, gridcolor='#eee'),
     yaxis=dict(title="Variant Allele Fraction (%)", range=[0, 100], dtick=25, gridcolor='#eee'),
@@ -62,25 +67,74 @@ fig.update_layout(
 
 st.plotly_chart(fig, use_container_width=True)
 
-# --- Automated Alert System ---
+# --- Dynamic Automated Interpretation (Restored & English) ---
+st.markdown("---")
+st.subheader("🔍 Automated Interpretation (Trial)")
 
-# 1. Convergence Zone (Gray Zone) Alert (Triggered at TC >= 70%)
-if tc_input >= 70:
+# Convert input percentages to decimal for calculation
+tc_val = tc_input / 100
+vaf_val = vaf_input / 100
+tolerance = 2.0  # Allowed deviation in VAF % for matching
+
+# Theoretical VAFs at current TC
+theoretical_vafs = {
+    "Germline (Hetero)": 50.0,
+    "Somatic (Hetero)": (0.5 * tc_val) * 100,
+    "Somatic + cnLOH": (tc_val) * 100
+}
+
+# Avoid division by zero
+if tc_val < 1.0:
+    theoretical_vafs["Somatic + LOH (Del)"] = (tc_val / (2 - tc_val)) * 100
+    theoretical_vafs["Germline + LOH (Del)"] = (1 / (2 - tc_val)) * 100
+    theoretical_vafs["Germline + cnLOH"] = (0.5 * (1 + tc_val)) * 100
+elif tc_val == 1.0:
+    theoretical_vafs["Somatic + LOH (Del)"] = 100.0
+    theoretical_vafs["Germline + LOH (Del)"] = 100.0
+    theoretical_vafs["Germline + cnLOH"] = 100.0
+
+# Identify matches within tolerance
+matched_models = []
+for model_name, theoretical_vaf in theoretical_vafs.items():
+    if abs(vaf_input - theoretical_vaf) <= tolerance:
+        matched_models.append(model_name)
+
+# Display Interpretation Comments
+if matched_models:
+    st.success(f"**Automated Comment for {gene_name} Sample:**")
+    st.write(f"The observed VAF ({vaf_input}%) closely aligns with the following theoretical model(s) (within ±{tolerance}% tolerance):")
+    for model in matched_models:
+        st.write(f"- {model}")
+    
+    if "Germline + LOH (Del)" in matched_models or "Somatic + LOH (Del)" in matched_models:
+        st.write("**Note**: Since LOH (Deletion) models are suggested, please carefully differentiate between germline and somatic origin, especially if TC is high.")
+else:
+    st.info(f"**Automated Comment for {gene_name} Sample:**")
+    st.write(f"The observed VAF ({vaf_input}%) does not closely align with standard theoretical models (tolerance ±{tolerance}%). This may suggest complex copy number alterations or clonal heterogeneity.")
+
+
+# --- Alert System (Retained & Improved) ---
+st.markdown("---")
+st.subheader("⚠️ Quality & Interpretation Alerts")
+
+# 1. Convergence & Mimicry Zone (Gray Zone) Alert (TC >= 60%)
+if tc_input >= 60:
     st.warning(f"""
-    ⚠️ **Convergence Zone (Gray Zone) Alert**:  
-    At the current Tumor Content of **{tc_input}%**, theoretical VAF values for **Germline LOH** and **Somatic LOH** converge. 
-    Distinguishing between these events based solely on VAF is mathematically difficult in this high-purity range. 
-    Please incorporate clinical data (e.g., family history or therapeutic response) for accurate interpretation.
+    **Convergence & Mimicry Zone (Gray Zone)**:  
+    The current Tumor Content is **{tc_input}%**. Interpretation in this range requires extra caution:
+    1. **Mimicry Risk (60-70% TC)**: Somatic LOH events can result in a VAF near 50%, mimicking a standard germline heterozygous state (e.g., as noted by reviewers).
+    2. **Convergence Risk (>70% TC)**: Theoretical curves for Germline LOH and Somatic LOH converge significantly, making them difficult to distinguish by VAF alone.
+    Clinical correlation (e.g., family history, drug response) is strongly recommended.
     """)
 
-# 2. Low Confidence Zone Alert (Triggered at TC < 30%)
+# 2. Low Confidence Zone Alert (TC < 30%)
 elif tc_input < 30:
-    st.info("ℹ️ **Low Confidence Zone**: Please note that interpretation reliability may be limited in samples with Tumor Content below 30%.")
+    st.info(f"**Low Confidence Zone**: Please note that interpretation reliability may be limited when Pathological Tumor Content is below 30%.")
 
-# --- Clinical Interpretation Section ---
+# --- Clinical Context Section (Static but Organized) ---
 st.markdown("---")
-st.subheader("📝 Clinical Interpretation Notes")
+st.subheader("📝 Additional Clinical Interpretation Notes")
 st.write(f"""
-- **Convergence Phenomenon**: The "Gray Zone" occurs because the mathematical difference between somatic and germline VAFs narrows as tumor purity increases toward 100%.
-- **High-TC Case Insights**: In our study, high-TC samples ($\ge$ 90%) with elevated VAFs were confirmed as **Germline LOH** rather than somatic events. This distinction is critical, as such cases (e.g., SEC) have demonstrated favorable responses to PARP inhibitors in clinical practice.
+- **Fixed Scaling**: The graph utilizes fixed 0–100% ranges for both TC and VAF axes, ensuring a standardized visual perspective for clinical use, as requested.
+- **Figure 5A Insight**: In samples with high TC ($\ge$ 90%), elevated VAFs are sometimes misidentified as somatic events. In our study, these were confirmed as **Germline LOH**, supported by clinical outcomes such as favorable responses to **PARP inhibitors** (e.g., SEC cases). Accurate distinction in this zone is crucial for identifying HBOC and Lynch syndrome and informing therapeutic decisions.
 """)
