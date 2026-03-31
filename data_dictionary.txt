@@ -1,0 +1,31 @@
+See variables in dataset. All values are theoretical based on two-hit hypothesis.
+
+Variable: Tumor_Content (%)
+Description: Estimated tumor cellularity based on pathological assessment
+
+Variable: VAF (%)
+Description: Variant allele frequency derived from NGS
+
+Variable: germline_cnLOH
+Description: Theoretical VAF line assuming germline variants with copy-neutral LOH (uniparental disomy)
+
+Variable: germline_LOH_Del
+Description: Theoretical VAF line assuming germline variant with LOH due to deletion
+
+Variable: germline_Hetero
+Description: Theoretical VAF line assuming heterozygous germline variants 
+
+Variable: Somatic_LOH_3_copies (%):
+Theoretical VAF assuming somatic variant with LOH and total copy number of 3.
+
+Variable: Somatic_LOH_4_copies (%):
+Theoretical VAF assuming somatic variant with LOH and total copy number of 4.
+
+Variable: somatic_cnLOH 
+Description: Theoretical VAF line assuming somatic variants with copy-neutral LOH (uniparental disomy)
+
+Variable: somatic_LOH_Del 
+Description: Theoretical VAF line assuming somatic variants with LOH due to deletion of the wild-type allele
+
+Variable: somatic_Hetero
+Description: Theoretical VAF line assuming heterozygous somatic variants
