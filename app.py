@@ -1,111 +1,106 @@
 import streamlit as st
-import plotly.graph_objects as go
+import pandas as pd
 import numpy as np
+import plotly.graph_objects as go
 
-# 1. ページ設定
-st.set_page_config(page_title="VAF-TC Relationship Visualizer", layout="wide")
+# --- Page Configuration ---
+st.set_page_config(page_title="VAF-TC Precision Analyzer", layout="wide")
 
-# 2. タイトル
-st.title("🧬 VAF-TC Relationship Visualizer")
-st.markdown("Interactive visualization of theoretical Pathological Tumor Content (TC) and Variant Allele Fraction (VAF) relationships.")
-
-# 3. サイドバー設定
-st.sidebar.header("📊 Input Parameters")
-gene_name = st.sidebar.text_input("Gene Name", value="BRCA2")
-tc_input = st.sidebar.slider("Pathological Tumor Content (TC %)", 0, 100, 70)
-vaf_input = st.sidebar.slider("Variant Allele Fraction (VAF %)", 0, 100, 57)
-
-# 【追加】入力ガイド
-st.sidebar.markdown("---")
-st.sidebar.info("""
-💡 **How to use:**
-Please enter the **Gene Name**, **Pathological TC (%)**, and observed **VAF (%)** in the fields above. 
-The plot and interpretation will update automatically.
+st.title("🧬 VAF-TC Clinical Genetics Analyzer")
+st.markdown("""
+This application analyzes the relationship between **Pathological Tumor Content (TC)** and **Variant Allele Frequency (VAF)** to distinguish between Somatic and Germline variants, considering LOH (Loss of Heterozygosity).
 """)
 
-tc = tc_input / 100.0
-vaf = vaf_input / 100.0
+# --- Sidebar Inputs ---
+st.sidebar.header("📋 Patient Data Input")
+tc_input = st.sidebar.slider("Pathological Tumor Content (%)", 10, 100, 50, help="Assessment by a pathologist is highly recommended.")
+vaf_input = st.sidebar.slider("Observed VAF (%)", 1, 100, 25)
+st.sidebar.info("Note: 'Pathological TC' is used as the gold standard for this model.")
 
-# 4. 理論曲線の計算
-x = np.linspace(0.01, 1.0, 100)
-y_germ_cnloh = (1 + x) / 2
-y_germ_del = 1 / (2 - x)
-y_germ_hetero = np.full_like(x, 0.5)
-y_som_cnloh = x
-y_som_del = x / (2 - x)
+# --- Mathematical Models ---
+# f = TC / 100
+f = tc_input / 100
 
-# 5. メインレイアウト (左 2 : 右 1)
-main_col_left, main_col_right = st.columns([2, 1])
+models = {
+    "Somatic Heterozygous": (f / 2) * 100,
+    "Somatic LOH (with Del)": (f / (2 - f)) * 100,
+    "Germline Heterozygous": 50.0,
+    "Germline LOH (with Del)": (1 / (2 - f)) * 100
+}
 
-# --- 左カラム：グラフ表示 ---
-with main_col_left:
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(x=x*100, y=y_germ_cnloh*100, name="Germline + cnLOH", line=dict(color='#d4af37', width=2)))
-    fig.add_trace(go.Scatter(x=x*100, y=y_germ_del*100, name="Germline + LOH (Del)", line=dict(color='#e41a1c', width=2)))
-    fig.add_trace(go.Scatter(x=x*100, y=y_germ_hetero*100, name="Germline (Hetero)", line=dict(color='#a65628', width=2)))
-    fig.add_trace(go.Scatter(x=x*100, y=y_som_cnloh*100, name="Somatic + cnLOH", line=dict(color='#4daf4a', dash='dash')))
-    fig.add_trace(go.Scatter(x=x*100, y=y_som_del*100, name="Somatic + LOH (Del)", line=dict(color='#377eb8', dash='dot')))
+# --- 1. Dynamic Alert Logic (The 50% VAF Trap) ---
+st.subheader("🚨 Real-time Clinical Alerts")
 
-    fig.add_trace(go.Scatter(
-        x=[tc_input], y=[vaf_input],
-        mode='markers+text',
-        name=f"{gene_name} Sample",
-        text=[f"{gene_name}<br>TC:{tc_input}%<br>VAF:{vaf_input}%"],
-        textposition="top right",
-        marker=dict(color='black', size=12)
-    ))
+if 60 <= tc_input <= 75:
+    st.warning(f"""
+    **Alert: The 50% VAF Trap (Grey Zone)**
+    At TC {tc_input}%, the theoretical VAF for **Somatic LOH (with Del)** is {models['Somatic LOH (with Del) Marc']:.1f}%.
+    Crucially, at TC ≈ 66.7%, this somatic model crosses the **50% threshold**.
+    In this range, a somatic mutation can perfectly mimic a heterozygous germline variant. 
+    **Recommendation:** Do not assume VAF ≈ 50% is Germline. Consider paired-normal testing.
+    """)
+elif tc_input >= 90:
+    st.info("""
+    **High TC Context (≥90%):**
+    At very high tumor purity, Somatic LOH and Germline variants converge toward similar VAF ranges. 
+    While germline LOH is statistically frequent in certain contexts, somatic LOH (e.g., in *TP53*) 
+    is equally plausible. High TC requires careful integration with clinical history.
+    """)
+else:
+    st.success("No critical mathematical intersections detected for the current TC range.")
 
-    fig.add_vrect(x0=0, x1=30, fillcolor="gray", opacity=0.1, layer="below", line_width=0, annotation_text="Low Confidence Zone", annotation_position="top left")
+# --- 2. Compatible Models (±10% Range) ---
+st.subheader("🔍 Compatible Theoretical Models")
+st.write(f"Listing all models within a ±10% margin of the observed VAF ({vaf_input}%):")
 
-    fig.update_layout(
-        xaxis_title="Pathological Tumor Content (%)",
-        yaxis_title="Variant Allele Fraction (%)",
-        yaxis=dict(range=[0, 105]),
-        xaxis=dict(range=[0, 105]),
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font=dict(size=10)),
-        template="simple_white",
-        height=550,
-        margin=dict(l=20, r=20, t=50, b=20)
-    )
-    st.plotly_chart(fig, use_container_width=True)
+compatible_data = []
+for name, theory_vaf in models.items():
+    diff = abs(vaf_input - theory_vaf)
+    if diff <= 10.0:
+        compatible_data.append({
+            "Model Name": name,
+            "Theoretical VAF (%)": round(theory_vaf, 2),
+            "Difference (%)": round(diff, 2)
+        })
 
-# --- 右カラム：解釈と臨床ノート ---
-with main_col_right:
-    st.subheader("📋 Interpretation")
+if compatible_data:
+    st.table(pd.DataFrame(compatible_data))
+else:
+    st.error("No standard models match the observed VAF within a ±10% margin. Consider clonal heterogeneity or aneuploidy.")
+
+# --- 3. Interpretation & Factors ---
+with st.expander("📝 Clinical Interpretation Notes"):
+    st.markdown(f"""
+    **Interpretation Factors:**
+    - **NGS Variance:** Sequencing depth and library prep can cause ±5-10% fluctuations.
+    - **Aneuploidy / Copy Number Changes:** Deviations from these models often suggest large-scale genomic gains or losses.
+    - **Clonal Heterogeneity:** Subclonal mutations will present with lower-than-expected VAF.
     
-    error_margin = 0.10
-    models = {
-        "Germline + cnLOH": (1 + tc) / 2,
-        "Germline + LOH (Del)": 1 / (2 - tc),
-        "Germline (Hetero)": 0.5,
-        "Somatic + cnLOH": tc,
-        "Somatic + LOH (Del)": tc / (2 - tc)
-    }
-    
-    compatible_models = [name for name, val in models.items() if abs(val - vaf) <= error_margin]
+    **PARP Inhibitor (PARPi) Indications:**
+    - **Ovarian & Prostate Cancer:** Both **Germline (gBRCA)** and **Somatic (sBRCA)** variants with LOH (Biallelic inactivation) may confer sensitivity.
+    - **Breast & Pancreatic Cancer:** Currently, regulatory approval is primarily restricted to **Germline (gBRCA)** carriers. 
+    *Note: Always refer to the latest regional clinical guidelines.*
+    """)
 
-    if compatible_models:
-        st.success(f"**Compatible Models for {gene_name}:**")
-        st.markdown("Considering a **±10% measurement error**, the observed VAF aligns with the following theoretical model(s):")
-        for m in compatible_models:
-            st.markdown(f"- **{m}**")
-        st.caption("Factors such as NGS variance, aneuploidy, or copy number changes should be considered.")
-    else:
-        st.info(f"**{gene_name} Insight:** VAF does not closely align with any standard models (deviation > 10%). Consider complex genomic alterations or significant clonal heterogeneity.")
+# --- 4. Visualization ---
+st.subheader("📈 VAF-TC Theoretical Projection")
+tc_range = np.linspace(10, 100, 100)
+f_range = tc_range / 100
 
-    # 収束リスク警告 (アラート文)
-    if 60 <= tc_input <= 75:
-        alert_text = f"⚠️ **Convergence Risk (Gray Zone):** At TC {tc_input}% and VAF {vaf_input}%, theoretical curves for **Germline LOH** and **Somatic LOH** converge significantly. Distinguishing between these events based on VAF alone is difficult in this range. Clinical correlation (e.g., family history, drug response) is strongly recommended."
-        st.warning(alert_text)
+fig = go.Figure()
+fig.add_trace(go.Scatter(x=tc_range, y=(f_range/2)*100, name="Somatic Het"))
+fig.add_trace(go.Scatter(x=tc_range, y=(f_range/(2-f_range))*100, name="Somatic LOH (Del)", line=dict(dash='dash')))
+fig.add_trace(go.Scatter(x=tc_range, y=[50]*100, name="Germline Het", line=dict(color='green')))
+fig.add_trace(go.Scatter(x=tc_range, y=(1/(2-f_range))*100, name="Germline LOH (Del)", line=dict(color='red')))
 
-    st.divider()
+# Highlight User Data
+fig.add_trace(go.Scatter(x=[tc_input], y=[vaf_input], mode='markers+text', 
+                         name="Current Case", text=["Case"], textposition="top center",
+                         marker=dict(color='black', size=12, symbol='x')))
 
-    # 臨床ノート (科学的根拠に基づく注釈)
-    st.subheader("📝 Clinical Notes")
-    notes = """
-* **Measurement Tolerance:** In clinical NGS analysis, a variance of approximately 10% in VAF is common due to technical limitations and biological factors such as aneuploidy.
-* **Tumor Purity:** To ensure accuracy, tumor content (TC) should be determined via **pathological assessment** by a specialist, as NGS-based estimations can carry higher uncertainty.
-* **High TC Context:** In samples with high tumor content (TC ≥ 90%), variants with high VAFs are statistically more likely to represent **Germline LOH** rather than somatic events.
-* **Therapeutic Implication:** **Biallelic inactivation (LOH)** is the critical indicator for PARP inhibitor sensitivity, regardless of whether the initial variant is germline or somatic in origin.
-    """
-    st.markdown(notes)
+fig.update_layout(xaxis_title="Pathological Tumor Content (%)", yaxis_title="VAF (%)",
+                  legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
+st.plotly_chart(fig, use_container_width=True)
+
+st.divider()
+st.caption("Developed for Clinical Genetics Suite. Version 2.0 (Internal Preview).")
