@@ -26,10 +26,10 @@ y_germ_hetero = np.full_like(x, 0.5)
 y_som_cnloh = x
 y_som_del = x / (2 - x)
 
-# 5. メインレイアウト (左 2 : 右 1)
+# 5. メインレイアウト (左 2 : 右 1 の割合で分割)
 main_col_left, main_col_right = st.columns([2, 1])
 
-# --- 左カラム：グラフ ---
+# --- 左カラム：グラフ表示 ---
 with main_col_left:
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=x*100, y=y_germ_cnloh*100, name="Germline + cnLOH", line=dict(color='#d4af37', width=2)))
@@ -61,7 +61,7 @@ with main_col_left:
     )
     st.plotly_chart(fig, use_container_width=True)
 
-# --- 右カラム：解釈とアラート ---
+# --- 右カラム：解釈と臨床ノート ---
 with main_col_right:
     st.subheader("📋 Interpretation")
     
@@ -80,15 +80,15 @@ with main_col_right:
     if diff <= 10.0:
         st.success(f"**{gene_name} Insight:** The observed VAF is within the expected range of **measurement error (approx. ±10%)** for standard models. It aligns most closely with **{closest_model}**, but factors such as **NGS variance, aneuploidy, or copy number changes** should be considered.")
     else:
-        st.info(f"**{gene_name} Insight:** VAF does not closely align with standard models (deviation > 10%). Consider complex genomic alterations or significant clonal heterogeneity.")
+        st.info(f"**{gene_name} Insight:** VAF does not closely align with standard models (deviation > 10%). Consider potential complex genomic alterations or significant clonal heterogeneity.")
 
-    # 【新規】第1著者の提案に基づくダイナミック・アラート 
+    # 【番号削除済み】ダイナミック・アラート（Gray Zone警告）
     if 60 <= tc_input <= 75:
-        st.warning(f"⚠️ **Convergence Risk (Gray Zone):** At TC {tc_input}% and VAF {vaf_input}%, theoretical curves for **Germline LOH** and **Somatic LOH** converge significantly[cite: 2]. Distinguishing between these events based on VAF alone is difficult in this range[cite: 3]. Clinical correlation (e.g., family history, drug response) is strongly recommended[cite: 4].")
+        st.warning(f"⚠️ **Convergence Risk (Gray Zone):** At TC {tc_input}% and VAF {vaf_input}%, theoretical curves for **Germline LOH** and **Somatic LOH** converge significantly. Distinguishing between these events based on VAF alone is difficult in this range. Clinical correlation (e.g., family history, drug response) is strongly recommended.")
 
     st.divider()
 
-    # 臨床ノート（第1著者の専門的指摘の反映）
+    # 【番号削除済み】臨床ノート
     st.subheader("📝 Clinical Notes")
     st.markdown(f"""
     * **Measurement Tolerance:** In clinical NGS analysis, a variance of approximately 10% in VAF is common due to technical limitations and biological factors such as aneuploidy.
