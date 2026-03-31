@@ -9,27 +9,30 @@ This tool helps clinicians and researchers evaluate the likelihood of germline v
 Access the interactive web tool here:
 **[https://vaf-tc-app.streamlit.app/](https://vaf-tc-app.streamlit.app/)**
 
+## 📂 Downloadable Data Resources
+For users who prefer offline analysis, batch processing of multiple variants, or custom editing, the following raw data files are available in this repository:
+- **[VAF_TC_theoretical_model.xlsx](./VAF_TC_theoretical_model.xlsx):** Excel format for easy editing and paper-based use.
+- **[VAF_TC_theoretical_model.csv](./VAF_TC_theoretical_model.csv):** Raw data in CSV format.
+- **[data_dictionary.txt](./data_dictionary.txt):** Detailed descriptions of all data columns.
+
 ## Key Features
-* **Automated Interpretation:** Dynamically identifies all theoretical models that align with the sample within a **±10% measurement error threshold**, acknowledging the inherent variance in clinical NGS data.
-* **Convergence Zone (Gray Zone) Alert:** A targeted warning system for samples where theoretical curves for germline LOH and somatic LOH converge (typically TC 60–75%). In this range, distinguishing events based on VAF alone is mathematically challenging.
-* **Pathological Integration:** Designed to work with **Pathological TC (%)** determined by a pathologist to ensure higher diagnostic reliability compared to NGS-based estimations.
-* **Clinical Notes:** Provides essential insights into measurement tolerance, high-TC context (TC ≥ 90%), and therapeutic implications regarding PARP inhibitors.
+* **Automated Interpretation:** Dynamically identifies theoretical models within a **±10% measurement error threshold**.
+* **TMB-high Tumor Application:** Highly effective for interpreting hypermutated cases, including **MMRd** and **POLEm** tumors, as discussed in the associated study.
+* **Convergence Zone (Gray Zone) Alert:** A warning system for samples where germline LOH and somatic LOH curves converge (typically TC 60–75%).
+* **Pathological Integration:** Designed for use with **Pathological TC (%)** to ensure clinical reliability.
 
 ## Clinical Significance
-Distinguishing between germline and somatic variants is a complex task in tumor-only sequencing. As demonstrated in clinical studies, samples with high tumor content (TC ≥ 90%) and elevated VAFs are at risk of being misidentified as somatic events, while they may actually represent **Germline LOH**.
+Distinguishing between germline and somatic variants is critical in tumor-only sequencing. High-TC samples (TC ≥ 90%) with elevated VAFs are often misidentified as somatic events when they actually represent **Germline LOH**. 
 
-Accurate identification of **Biallelic inactivation (LOH)** is therapeutically significant. Regardless of whether the initial variant is germline or somatic in origin, the presence of LOH is a critical indicator for sensitivity to targeted therapies, such as **PARP inhibitors** in ovarian and breast cancers.
+Accurate identification of **Biallelic inactivation (LOH)** is therapeutically significant for identifying HBOC/Lynch Syndrome and determining sensitivity to **PARP inhibitors**, regardless of the variant's origin.
 
 ## How to Use
-1. **Input Parameters:** Use the sidebar to input the **Gene Name**, **Pathological TC (%)**, and observed **VAF (%)**. A guide is provided in the sidebar for new users.
-2. **Analyze:** The black circle represents your specific clinical sample.
-3. **Automated Interpretation:** The tool lists all theoretical models that fall within the ±10% error margin of your data.
-4. **Clinical Correlation:** If the sample falls into the **Convergence Zone**, a warning will appear prompting further clinical correlation (e.g., family history or drug response).
+1. **Online:** Use the [Web App](https://vaf-tc-app.streamlit.app/) for quick, interactive visualization.
+2. **Offline/Batch:** Download the `.xlsx` file to process multiple mutant genes in a single clinical case or for paper-based records.
 
-## Installation (Local Execution)
-To run this tool locally:
-```bash
-git clone [https://github.com/Clinical-Genetics-Suite/vaf-tc-app.git](https://github.com/Clinical-Genetics-Suite/vaf-tc-app.git)
-cd vaf-tc-app
-pip install -r requirements.txt
-streamlit run app.py
+## Citation
+If you use this tool or data in your research, please cite:
+*Integrated VAF-TC graph: a novel tool for differentiating germline from somatic variants in tumor-only sequencing* (In preparation/submission).
+
+---
+© 2024 Clinical-Genetics-Suite
