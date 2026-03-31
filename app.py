@@ -15,6 +15,14 @@ gene_name = st.sidebar.text_input("Gene Name", value="BRCA2")
 tc_input = st.sidebar.slider("Pathological Tumor Content (TC %)", 0, 100, 70)
 vaf_input = st.sidebar.slider("Variant Allele Fraction (VAF %)", 0, 100, 57)
 
+# 【追加】入力ガイド
+st.sidebar.markdown("---")
+st.sidebar.info("""
+💡 **How to use:**
+Please enter the **Gene Name**, **Pathological TC (%)**, and observed **VAF (%)** in the fields above. 
+The plot and interpretation will update automatically.
+""")
+
 tc = tc_input / 100.0
 vaf = vaf_input / 100.0
 
