@@ -103,3 +103,5 @@ st.plotly_chart(fig, use_container_width=True)
 
 st.divider()
 st.caption("Developed by Clinical Genetics Suite (Maintainer: Sawai1960). Version 2.4 (Hotfix: KeyError Resolved).")
+st.divider()
+st.info("✅ Sync Verified: This app is running from Sawai1960/vaf-tc-app")
