@@ -2,7 +2,7 @@ import streamlit as st
 import plotly.graph_objects as go
 import numpy as np
 
-# ページ設定（ワイドモードを維持）
+# ページ設定
 st.set_page_config(page_title="VAF-TC Relationship Visualizer", layout="wide")
 
 # タイトル
@@ -54,7 +54,7 @@ with main_col_left:
     # 低信頼領域（TC < 30%）のシェーディング
     fig.add_vrect(x0=0, x1=30, fillcolor="gray", opacity=0.1, layer="below", line_width=0, annotation_text="Low Confidence Zone", annotation_position="top left")
 
-    # レイアウト調整（高さを少し抑えて1画面に収まりやすくする）
+    # レイアウト調整
     fig.update_layout(
         xaxis_title="Pathological Tumor Content (%)",
         yaxis_title="Variant Allele Fraction (%)",
@@ -96,11 +96,11 @@ with main_col_right:
 
     st.divider()
 
-    # --- 臨床ノートエリア ---
+    # --- 臨床ノートエリア (図番号を削除し、内容を一般化) ---
     st.subheader("📝 Clinical Notes")
     st.markdown(f"""
-    * **Measurement Tolerance:** Based on our study (Figures 5A, 5B), a 10% VAF variance is common due to NGS technical limits and aneuploidy.
-    * **Tumor Purity:** TC must be determined via **pathological assessment** by a pathologist to ensure clinical reliability.
-    * **High TC Context:** In samples with TC ≥ 90%, high-VAF variants are statistically more likely to be **Germline LOH**.
-    * **Therapy Sensitivity:** Biallelic inactivation (LOH) is the key indicator for **PARP inhibitor sensitivity**, regardless of germline or somatic origin.
+    * **Measurement Tolerance:** In clinical NGS analysis, a variance of approximately 10% in VAF is commonly observed due to technical limitations and biological factors such as aneuploidy. 
+    * **Tumor Purity:** To ensure accuracy, tumor content (TC) should be determined via **pathological assessment**, as NGS-based estimations can carry higher uncertainty. [cite: 13]
+    * **High TC Context:** In samples with high tumor content (TC ≥ 90%), variants with high VAFs are statistically more likely to be **Germline LOH** rather than somatic events. [cite: 15]
+    * **Therapeutic Implication:** Biallelic inactivation (LOH) is a critical indicator for **PARP inhibitor sensitivity**, regardless of whether the initial variant is germline or somatic in origin. [cite: 18]
     """)
