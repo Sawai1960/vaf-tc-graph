@@ -11,18 +11,23 @@ By applying theoretical lines based on **Knudson’s two-hit model**, this tool 
 
 ---
 
-## 🚀 Key Features
+## 🚀 Key Clinical Features
 
-### 1. The "50% VAF Trap" Alert (Dynamic Logic)
-One of the most critical pitfalls in clinical NGS is the reflexive interpretation of a **VAF ≈ 50%** as a germline variant. 
-- **The Intersection:** At TC ≈ 66.7%, a **Somatic LOH (deletion)** event yields a theoretical VAF of exactly **50%**.
-- **Dynamic Alert:** When TC is between 60-75%, the app triggers a warning to prevent misidentifying somatic drivers as hereditary findings in this specific "Grey Zone."
+### 1. The "50% VAF Trap" Alert
+In clinical NGS, VAF ≈ 50% is often incorrectly assumed to be a germline variant. 
+- **The Intersection:** At TC ≈ 66.7%, a **Somatic LOH (deletion)** event yields a theoretical VAF of **50%**.
+- **Dynamic Alert:** The app warns users when TC is in the 60-75% range, preventing misidentifying somatic drivers as hereditary findings.
 
-### 2. Support for Hypermutated & TMB-High Tumors
-Particularly useful for interpreting cases with high mutational burdens, such as **MMR-deficient (Lynch syndrome)** and **POLE-mutant** tumors. The tool allows clinicians to plot and mark multiple variants from a single case on a dedicated Excel-based theoretical model, facilitating practical, case-by-case marking for complex clinical records.
+### 2. Convergence Alert (TC ≥ 70%)
+We implemented an alert to indicate the potential convergence of germline LOH and somatic LOH when tumor content (TC) is ≥ 70% and the variant allele frequency (VAF) is at or above the theoretical line for somatic LOH with deletion. This specific alert addresses the clinical "Grey Zone" where somatic events can be indistinguishable from germline findings.
 
-### 3. Mathematical Convergence Analysis (TC ≥ 90%)
-At very high tumor purity, theoretical models for Somatic LOH and Germline LOH converge. The tool flags this "Convergence Zone" to remind clinicians that VAF alone cannot distinguish a variant's origin without clinical correlation and family history.
+### 3. Support for Hypermutated Tumors (Practical Excel Workflow)
+Particularly useful for interpreting cases with high mutational burdens, such as **MMR-deficient (Lynch syndrome)** and **POLE-mutant** tumors. 
+- **Practical Marking:** Users can download a dedicated Excel template to plot and manually mark multiple variants for a single patient case. 
+- **Clinical Records:** This facilitates the creation of a visual, case-by-case record for complex clinical documentation and paper-based reporting.
+
+### 4. Mathematical Limit Analysis (TC ≥ 90%)
+In high-purity samples (TC ≥ 90%), the app flags a "Mathematical Convergence Zone." As TC approaches 100%, the theoretical difference between somatic and germline LOH models falls within the margin of sequencing error. The tool reminds users that definitive classification in this range requires clinical correlation rather than VAF alone.
 
 ---
 
@@ -32,17 +37,14 @@ At very high tumor purity, theoretical models for Somatic LOH and Germline LOH c
 Hereditary cancers driven by tumor suppressor gene alterations (e.g., **HBOC, Lynch Syndrome, and FAP**) can be efficiently inferred using theoretical lines based on Knudson’s two-hit model. The ability to visualize whether an observed VAF aligns with a "two-hit" theoretical line provides strong supportive evidence for the variant's clinical relevance.
 
 ### Therapeutic Implications
-Identifying the genomic status of a tumor is therapeutically significant:
 - **BRCA1/2-associated tumors:** May indicate sensitivity to **PARP inhibitors**.
 - **Lynch Syndrome (MMR-d):** May predict responsiveness to **Immune Checkpoint Inhibitors (ICIs)**.
-*Note: In Lynch syndrome, the curative potential with ICIs is a significant clinical observation, though it remains a subject of ongoing discussion compared to epigenetic dMMR tumors.*
+*Note: In Lynch syndrome, the curative potential with ICIs is a significant clinical observation, differentiating these cases from epigenetic dMMR tumors.*
 
 ---
 
-## 🛠 How to Use
-
-- **Online:** Use the [Web App](https://vaf-tc-app.streamlit.app/) for quick, interactive visualization.
-- **Offline / Batch Processing:** Download the provided **.xlsx** file to process multiple mutant genes in a single clinical case, allowing for comprehensive marking and paper-based clinical records.
+## 🌐 Live Application
+👉 **[https://vaf-tc-app.streamlit.app/](https://vaf-tc-app.streamlit.app/)**
 
 ---
 
@@ -58,4 +60,3 @@ The app utilizes the following frameworks ($f$ = Tumor Fraction):
 ## 👥 Authors & Contribution
 - **Organization:** Clinical Genetics Suite
 - **Maintainer:** Sawai1960
-- **License:** MIT License
