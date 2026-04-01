@@ -21,6 +21,7 @@ tc_input = st.sidebar.slider("Pathological Tumor Content (TC %)", 0, 100, 50)
 vaf_input = st.sidebar.slider("Variant Allele Fraction (VAF %)", 0, 100, 50)
 
 st.sidebar.markdown("---")
+st.sidebar.caption("⚠️ When a CSV is uploaded below, the inputs above (Gene Name, TC, VAF) are disabled.")
 
 # Multi-variant CSV Upload
 st.sidebar.subheader("📂 Multi-variant Upload")
@@ -154,6 +155,7 @@ with col_alerts:
 
     # CSV Template Download
     st.subheader("📊 Multi-variant Workflow")
+    st.caption("💡 Download the template below, replace the sample genes with your own data, then upload the file using **Multi-variant Upload** in the left sidebar.")
     template_df = pd.DataFrame({
         "Gene": [gene_name, "TP53", "MSH2"],
         "TC":   [tc_input,  tc_input, tc_input],
