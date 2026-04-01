@@ -78,17 +78,52 @@ with col_alerts:
         }
         return [(name, val) for name, val in checks.items() if abs(val - v) <= error_margin]
 
+    def get_interpretation(compatible):
+        names = [name for name, _ in compatible]
+        if not names:
+            return "warning", "VAF does not align with any standard model. Consider clonal heterogeneity, aneuploidy, or complex copy number changes."
+        germ_hetero  = "Germline (Hetero)"   in names
+        germ_cnloh   = "Germline + cnLOH"    in names
+        germ_del     = "Germline + LOH (Del)" in names
+        som_cnloh    = "Somatic + cnLOH"      in names
+        som_del      = "Somatic + LOH (Del)"  in names
+
+        if germ_hetero and som_cnloh and not germ_del and not som_del:
+            return "error", "VAF alone **cannot distinguish** Germline (Hetero) from Somatic + cnLOH (UPD). These two models produce identical VAF at this TC. **Pair-normal germline testing is essential.**"
+        elif germ_del and som_del:
+            return "error", "VAF alone **cannot distinguish** Germline LOH (Del) from Somatic LOH (Del). These lines converge at this TC. **Germline confirmation is essential.**"
+        elif germ_cnloh and not som_cnloh and not som_del:
+            return "success", "Pattern is consistent with a **germline variant that has undergone copy-neutral LOH (UPD)**. Biallelic inactivation via germline + cnLOH."
+        elif germ_del and not som_del:
+            return "success", "Pattern is consistent with a **germline variant with LOH by deletion**. Biallelic inactivation via germline + deletion."
+        elif germ_hetero and not som_cnloh:
+            return "success", "Pattern is consistent with a **heterozygous germline variant without LOH**. Only one allele is affected."
+        elif som_cnloh and not germ_hetero:
+            return "info", "Pattern is consistent with a **somatic variant with copy-neutral LOH (UPD)**. Germline origin is less likely, but pair-normal testing is recommended."
+        elif som_del and not germ_del:
+            return "info", "Pattern is consistent with a **somatic variant with LOH by deletion**. Germline origin is less likely at this TC."
+        else:
+            return "info", "Multiple models are compatible. Clinical correlation and pair-normal testing are recommended."
+
     if multi_df is not None:
         # Multi-variant interpretation
         for _, row in multi_df.iterrows():
             g, t, v = str(row["Gene"]), float(row["TC"]), float(row["VAF"])
             compatible = get_compatible_models(t, v)
+            st.markdown(f"**{g}** (TC {t:.0f}%, VAF {v:.0f}%)")
             if compatible:
-                st.success(f"**{g}** (TC {t:.0f}%, VAF {v:.0f}%)")
                 for name, val in compatible:
                     st.markdown(f"- **{name}** — theoretical VAF {val*100:.1f}%")
+            level, msg = get_interpretation(compatible)
+            if level == "success":
+                st.success(f"➡️ {msg}")
+            elif level == "error":
+                st.error(f"➡️ {msg}")
+            elif level == "warning":
+                st.warning(f"➡️ {msg}")
             else:
-                st.info(f"**{g}** (TC {t:.0f}%, VAF {v:.0f}%) — No model match within ±10%.")
+                st.info(f"➡️ {msg}")
+            st.divider()
     else:
         # Single-variant interpretation
         compatible_models = get_compatible_models(tc_input, vaf_input)
@@ -98,6 +133,15 @@ with col_alerts:
                 st.markdown(f"- **{name}** — theoretical VAF {val*100:.1f}%")
         else:
             st.info(f"**Insight:** VAF {vaf_input}% does not align with any standard model at TC {tc_input}% (±10%).")
+        level, msg = get_interpretation(compatible_models)
+        if level == "success":
+            st.success(f"➡️ {msg}")
+        elif level == "error":
+            st.error(f"➡️ {msg}")
+        elif level == "warning":
+            st.warning(f"➡️ {msg}")
+        else:
+            st.info(f"➡️ {msg}")
 
     # --- Clinical Alerts ---
 
