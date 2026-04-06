@@ -125,12 +125,18 @@ streamlit run app_ja.py     # 日本語版
 
 | ファイル | 説明 |
 |------|-------------|
-| app.py | メインStreamlitアプリ・英語版(ver 3.3) |
-| app_ja.py | メインStreamlitアプリ・日本語版(ver 3.3) |
+| app.py | メインStreamlitアプリ・英語版(ver 3.4) |
+| app_ja.py | メインStreamlitアプリ・日本語版(ver 3.4) |
 | requirements.txt | Pythonの依存パッケージ |
 | VAF-TC theoretical_model.xlsx | VAF-TC理論曲線生成用Excelファイル |
 | VAF_TC_theoretical_model.csv | 理論モデルデータのCSV版 |
 | data_dictionary.txt | 理論モデルの変数定義 |
+
+## 変更履歴(ver 3.4)
+
+- **移動** 複数変異ワークフロー・理論モデルデータのダウンロードをサイドバーに移動(アップロードと縦に整列)
+- **移動** 遺伝子リファレンスをサイドバーからグラフ下の右カラムに移動(広い表示・折りたたみなし)
+- **移動** 解析モードインジケーターをサイドバーから左カラム最上部に移動(目立つバナー表示)
 
 ## 変更履歴(ver 3.3)
 

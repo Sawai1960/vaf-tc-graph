@@ -126,11 +126,17 @@ streamlit run app.py
 
 | File | Description |
 |------|-------------|
-| app.py | Main Streamlit application (ver 3.3) |
+| app.py | Main Streamlit application (ver 3.4) |
 | requirements.txt | Python dependencies |
 | VAF-TC theoretical_model.xlsx | Excel file for generating theoretical VAF-TC curves |
 | VAF_TC_theoretical_model.csv | CSV version of the theoretical model data |
 | data_dictionary.txt | Variable definitions for the theoretical model |
+
+## Changelog (ver 3.4)
+
+- **Moved** Multi-variant Workflow download and Theoretical Model Data download to sidebar (vertically aligned with upload)
+- **Moved** Gene Reference from sidebar to right column below graph (wider display, no longer collapsible)
+- **Moved** Analysis Mode indicator from sidebar to top of left column (prominent banner)
 
 ## Changelog (ver 3.3)
 

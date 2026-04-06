@@ -102,18 +102,29 @@ if uploaded_file is not None:
         multi_df = None
 
 st.sidebar.markdown("---")
-st.sidebar.info(f"💡 **Analysis Mode:** {gene_name}")
+# CSV Template Download (sidebar)
+st.sidebar.subheader("📊 Multi-variant Workflow")
+st.sidebar.caption("💡 Download the template below, replace the sample genes with your own data, then upload using **Multi-variant Upload** above.")
+template_df = pd.DataFrame({
+    "Gene": [gene_name, "TP53", "MSH2"],
+    "TC":   [tc_input,  tc_input, tc_input],
+    "VAF":  [vaf_input, 0.0,      0.0]
+})
+csv_string = template_df.to_csv(index=False)
+st.sidebar.download_button("📥 Download CSV Template", csv_string.encode("utf-8"), "VAF_TC_Template.csv", "text/csv")
 
-# Gene Reference Table in Sidebar (GPV/PGPV Guidelines 2025)
-with st.sidebar.expander("📖 Gene Reference (GPV/PGPV Guidelines 2025)"):
-    st.markdown("**🔴 Low VAF threshold (VAF ≥ 10%):**")
-    st.caption("BRCA1, BRCA2")
-    st.markdown("**🟠 Age-conditional (onset < 30 y):**")
-    st.caption("APC (colorectal polyposis), CDKN2A, PTEN, RB1, TP53")
-    st.markdown("**🟡 Standard (SNV VAF ≥ 30%, indel ≥ 20%):**")
-    st.caption("ATM, BAP1, BARD1, BRIP1, CHEK2, DICER1, FH, FLCN, MLH1, MSH2, MSH6, MUTYH(bi), NF1, PALB2, PMS2, POLD1, POLE, RAD51C, RAD51D, RET, SDHA, SDHB, TSC2, VHL")
-    st.caption("⬜ Genes not listed: not on the 2025 T-only PGPV list.")
-    st.caption("Reference: MHLW Research Grant — Guidelines for GPV/PGPV Handling Procedures in Cancer Gene Panel Testing (2025 Edition)")
+# Theoretical Model Data Downloads (sidebar)
+st.sidebar.subheader("📂 Theoretical Model Data")
+try:
+    with open("VAF_TC_theoretical_model.csv", "rb") as f:
+        st.sidebar.download_button("📥 Download Theoretical Model (CSV)", f.read(), "VAF_TC_theoretical_model.csv", "text/csv")
+except FileNotFoundError:
+    st.sidebar.caption("VAF_TC_theoretical_model.csv not found.")
+try:
+    with open("VAF-TC theoretical_model.xlsx", "rb") as f:
+        st.sidebar.download_button("📥 Download Theoretical Model (Excel)", f.read(), "VAF-TC_theoretical_model.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+except FileNotFoundError:
+    st.sidebar.caption("VAF-TC theoretical_model.xlsx not found.")
 
 tc = tc_input / 100.0
 vaf = vaf_input / 100.0
@@ -131,6 +142,7 @@ col_alerts, col_graph = st.columns([1, 2])
 
 # --- LEFT COLUMN: Clinical Interpretation & Alerts ---
 with col_alerts:
+    st.info(f"💡 **Analysis Mode:** {gene_name}")
     st.subheader("📋 Interpretation & Alerts")
 
     error_margin = 0.10
@@ -252,30 +264,6 @@ with col_alerts:
         st.dataframe(multi_df, use_container_width=True)
         st.divider()
 
-    # CSV Template Download
-    st.subheader("📊 Multi-variant Workflow")
-    st.caption("💡 Download the template below, replace the sample genes with your own data, then upload the file using **Multi-variant Upload** in the left sidebar.")
-    template_df = pd.DataFrame({
-        "Gene": [gene_name, "TP53", "MSH2"],
-        "TC":   [tc_input,  tc_input, tc_input],
-        "VAF":  [vaf_input, 0.0,      0.0]
-    })
-    csv_string = template_df.to_csv(index=False)
-    st.download_button("📥 Download CSV Template", csv_string.encode("utf-8"), "VAF_TC_Template.csv", "text/csv")
-
-    # Theoretical Model Data Downloads
-    st.subheader("📂 Theoretical Model Data")
-    try:
-        with open("VAF_TC_theoretical_model.csv", "rb") as f:
-            st.download_button("📥 Download Theoretical Model (CSV)", f.read(), "VAF_TC_theoretical_model.csv", "text/csv")
-    except FileNotFoundError:
-        st.caption("VAF_TC_theoretical_model.csv not found.")
-    try:
-        with open("VAF-TC theoretical_model.xlsx", "rb") as f:
-            st.download_button("📥 Download Theoretical Model (Excel)", f.read(), "VAF-TC_theoretical_model.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-    except FileNotFoundError:
-        st.caption("VAF-TC theoretical_model.xlsx not found.")
-
 
 # --- RIGHT COLUMN: Visualization ---
 with col_graph:
@@ -322,6 +310,17 @@ with col_graph:
     )
     st.plotly_chart(fig, use_container_width=True)
 
+    # Gene Reference Table (GPV/PGPV Guidelines 2025)
+    st.subheader("📖 Gene Reference (GPV/PGPV Guidelines 2025)")
+    st.markdown("**🔴 Low VAF threshold (VAF ≥ 10%):**")
+    st.caption("BRCA1, BRCA2")
+    st.markdown("**🟠 Age-conditional (onset < 30 y):**")
+    st.caption("APC (colorectal polyposis), CDKN2A, PTEN, RB1, TP53")
+    st.markdown("**🟡 Standard (SNV VAF ≥ 30%, indel ≥ 20%):**")
+    st.caption("ATM, BAP1, BARD1, BRIP1, CHEK2, DICER1, FH, FLCN, MLH1, MSH2, MSH6, MUTYH(bi), NF1, PALB2, PMS2, POLD1, POLE, RAD51C, RAD51D, RET, SDHA, SDHB, TSC2, VHL")
+    st.caption("⬜ Genes not listed: not on the 2025 T-only PGPV list.")
+    st.caption("Reference: MHLW Research Grant — Guidelines for GPV/PGPV Handling Procedures in Cancer Gene Panel Testing (2025 Edition)")
+
 # 7. Footer
 st.divider()
-st.caption("VAF-TC Precision Analyzer | Clinical Genetics Suite | ver 3.3 ✅")
+st.caption("VAF-TC Precision Analyzer | Clinical Genetics Suite | ver 3.4 ✅")

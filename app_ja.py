@@ -102,18 +102,29 @@ if uploaded_file is not None:
         multi_df = None
 
 st.sidebar.markdown("---")
-st.sidebar.info(f"💡 **解析モード：** {gene_name}")
+# CSVテンプレートダウンロード(サイドバー)
+st.sidebar.subheader("📊 複数変異ワークフロー")
+st.sidebar.caption("💡 下記のテンプレートをダウンロードし、サンプル遺伝子を自分のデータに書き換えてから、上の「複数変異アップロード」でアップロードしてください。")
+template_df = pd.DataFrame({
+    "Gene": [gene_name, "TP53", "MSH2"],
+    "TC":   [tc_input,  tc_input, tc_input],
+    "VAF":  [vaf_input, 0.0,      0.0]
+})
+csv_string = template_df.to_csv(index=False)
+st.sidebar.download_button("📥 CSVテンプレートをダウンロード", csv_string.encode("utf-8"), "VAF_TC_Template.csv", "text/csv")
 
-# 遺伝子リファレンス表(GPV/PGPV対応指針 2025版)
-with st.sidebar.expander("📖 遺伝子リファレンス(GPV/PGPV対応指針 2025版)"):
-    st.markdown("**🔴 低VAF閾値(VAF ≥ 10%)：**")
-    st.caption("BRCA1, BRCA2")
-    st.markdown("**🟠 年齢条件付き(発症年齢 < 30歳)：**")
-    st.caption("APC(大腸ポリポーシス), CDKN2A, PTEN, RB1, TP53")
-    st.markdown("**🟡 標準(SNV VAF ≥ 30%, Indel ≥ 20%)：**")
-    st.caption("ATM, BAP1, BARD1, BRIP1, CHEK2, DICER1, FH, FLCN, MLH1, MSH2, MSH6, MUTYH(bi), NF1, PALB2, PMS2, POLD1, POLE, RAD51C, RAD51D, RET, SDHA, SDHB, TSC2, VHL")
-    st.caption("⬜ リスト外の遺伝子：2025年版のT-only PGPVリストに含まれません。")
-    st.caption("出典：厚生労働科学研究費補助金 がん遺伝子パネル検査におけるGPV/PGPV対応手順に関する指針(2025版)")
+# 理論モデルデータダウンロード(サイドバー)
+st.sidebar.subheader("📂 理論モデルデータ")
+try:
+    with open("VAF_TC_theoretical_model.csv", "rb") as f:
+        st.sidebar.download_button("📥 理論モデルをダウンロード(CSV)", f.read(), "VAF_TC_theoretical_model.csv", "text/csv")
+except FileNotFoundError:
+    st.sidebar.caption("VAF_TC_theoretical_model.csv が見つかりません。")
+try:
+    with open("VAF-TC theoretical_model.xlsx", "rb") as f:
+        st.sidebar.download_button("📥 理論モデルをダウンロード(Excel)", f.read(), "VAF-TC_theoretical_model.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+except FileNotFoundError:
+    st.sidebar.caption("VAF-TC theoretical_model.xlsx が見つかりません。")
 
 tc = tc_input / 100.0
 vaf = vaf_input / 100.0
@@ -131,6 +142,7 @@ col_alerts, col_graph = st.columns([1, 2])
 
 # --- 左カラム：解釈とアラート ---
 with col_alerts:
+    st.info(f"💡 **解析モード：** {gene_name}")
     st.subheader("📋 解釈とアラート")
 
     error_margin = 0.10
@@ -249,30 +261,6 @@ with col_alerts:
         st.dataframe(multi_df, use_container_width=True)
         st.divider()
 
-    # CSVテンプレートダウンロード
-    st.subheader("📊 複数変異ワークフロー")
-    st.caption("💡 下記のテンプレートをダウンロードし、サンプル遺伝子を自分のデータに書き換えてから、左サイドバーの「複数変異アップロード」でアップロードしてください。")
-    template_df = pd.DataFrame({
-        "Gene": [gene_name, "TP53", "MSH2"],
-        "TC":   [tc_input,  tc_input, tc_input],
-        "VAF":  [vaf_input, 0.0,      0.0]
-    })
-    csv_string = template_df.to_csv(index=False)
-    st.download_button("📥 CSVテンプレートをダウンロード", csv_string.encode("utf-8"), "VAF_TC_Template.csv", "text/csv")
-
-    # 理論モデルデータダウンロード
-    st.subheader("📂 理論モデルデータ")
-    try:
-        with open("VAF_TC_theoretical_model.csv", "rb") as f:
-            st.download_button("📥 理論モデルをダウンロード(CSV)", f.read(), "VAF_TC_theoretical_model.csv", "text/csv")
-    except FileNotFoundError:
-        st.caption("VAF_TC_theoretical_model.csv が見つかりません。")
-    try:
-        with open("VAF-TC theoretical_model.xlsx", "rb") as f:
-            st.download_button("📥 理論モデルをダウンロード(Excel)", f.read(), "VAF-TC_theoretical_model.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-    except FileNotFoundError:
-        st.caption("VAF-TC theoretical_model.xlsx が見つかりません。")
-
 
 # --- 右カラム：グラフ ---
 with col_graph:
@@ -319,6 +307,17 @@ with col_graph:
     )
     st.plotly_chart(fig, use_container_width=True)
 
+    # 遺伝子リファレンス表(GPV/PGPV対応指針 2025版)
+    st.subheader("📖 遺伝子リファレンス(GPV/PGPV対応指針 2025版)")
+    st.markdown("**🔴 低VAF閾値(VAF ≥ 10%)：**")
+    st.caption("BRCA1, BRCA2")
+    st.markdown("**🟠 年齢条件付き(発症年齢 < 30歳)：**")
+    st.caption("APC(大腸ポリポーシス), CDKN2A, PTEN, RB1, TP53")
+    st.markdown("**🟡 標準(SNV VAF ≥ 30%, Indel ≥ 20%)：**")
+    st.caption("ATM, BAP1, BARD1, BRIP1, CHEK2, DICER1, FH, FLCN, MLH1, MSH2, MSH6, MUTYH(bi), NF1, PALB2, PMS2, POLD1, POLE, RAD51C, RAD51D, RET, SDHA, SDHB, TSC2, VHL")
+    st.caption("⬜ リスト外の遺伝子：2025年版のT-only PGPVリストに含まれません。")
+    st.caption("出典：厚生労働科学研究費補助金 がん遺伝子パネル検査におけるGPV/PGPV対応手順に関する指針(2025版)")
+
 # 7. フッター
 st.divider()
-st.caption("VAF-TC 精密解析ツール | Clinical Genetics Suite | ver 3.3 ✅")
+st.caption("VAF-TC 精密解析ツール | Clinical Genetics Suite | ver 3.4 ✅")
